@@ -145,6 +145,10 @@ func (configs ConfigsModel) validate() error {
 		return errors.New("issue with input TargetPath: " + err.Error())
 	}
 
+	if err := input.ValidateIfDirExists(configs.SourcePath); err != nil {
+		return errors.New("issue with input SourcePath: " + err.Error())
+	}
+
 	checkAlreadyExist(configs)
 	return nil
 }

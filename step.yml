@@ -72,7 +72,7 @@ inputs:
       is_required: true
       value_options: []
 
-  - target_path: ./folderToCreate/folder.zip
+  - target_path: $source_path.zip
     opts:
       title: "Target directory path"
       summary: The path of the directory where you want to move the compressed file.
