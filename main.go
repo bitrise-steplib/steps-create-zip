@@ -41,6 +41,7 @@ func main() {
 	}
 }
 
+// Adds the file extension to the end of the targetpath if it's needed.
 func fixTargetExtension(targetPath string) string {
 	if strings.HasSuffix(targetPath, targetExtension) {
 		return targetPath
@@ -51,12 +52,8 @@ func fixTargetExtension(targetPath string) string {
 func compress(sourcePath string, targetPath string) (string, error) {
 	targetPath = fixTargetExtension(targetPath)
 
-	dirOftargetPath := filepath.Dir(targetPath)
-	fmt.Print(dirOftargetPath)
-	if err := input.ValidateIfPathExists(dirOftargetPath); err != nil {
-		log.Printf("targetRootPath: %s does not exist", dirOftargetPath)
-		os.MkdirAll(dirOftargetPath, os.ModePerm)
-	}
+	validateTargetPath(targetPath)
+
 	zipfile, err := os.Create(targetPath)
 
 	if err != nil {
@@ -140,21 +137,37 @@ func compress(sourcePath string, targetPath string) (string, error) {
 	return fmt.Sprint(zipfile), nil
 }
 
+// If the file is a symbolic link it will evaulate the path name.
+
+// If the target is a symbolic link it will return true, the evaulated path, and the original path.
+// If the target is  not a symbolic link it will return false, and the original path.
+// If there is an error it will return the error.
 func checkSymlink(path string) (isSymlink bool, evaledPath string, originalPath string, error error) {
 	info, err := os.Lstat(path)
 	if err != nil {
-		return false, path, path, err
+		return false, "", path, err
 	}
 
 	if info.Mode()&os.ModeSymlink == os.ModeSymlink {
 		evaledPath, err := filepath.EvalSymlinks(path)
 		if err != nil {
-			return true, path, path, err
+			return true, "", path, err
 		}
 
 		return true, evaledPath, path, nil
 	}
-	return false, path, path, nil
+	return false, "", path, nil
+}
+
+// It will check the target path's existence.
+// If the targetPath does not exist it will create that.
+func validateTargetPath(targetPath string) {
+	dirOftargetPath := filepath.Dir(targetPath)
+	fmt.Print(dirOftargetPath)
+	if err := input.ValidateIfPathExists(dirOftargetPath); err != nil {
+		log.Printf("targetRootPath: %s does not exist", dirOftargetPath)
+		os.MkdirAll(dirOftargetPath, os.ModePerm)
+	}
 }
 
 func createConfigsModelFromEnvs() ConfigsModel {
@@ -193,6 +206,8 @@ func fail(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
+// It will warn the user if the zip has already exist at the targetPath.
+// Just log a warning, still continues.
 func checkAlreadyExist(configs ConfigsModel) {
 	targetPathWithExtension := fixTargetExtension(configs.TargetPath)
 	splittedTargetPathWithExtension := strings.Split(targetPathWithExtension, "/")
