@@ -63,7 +63,9 @@ workflows:
     - script:
         title: Create folder with text file for test_3
         inputs:
-        - content: mkdir "./folder_to_zip_test_3/" && touch "./folder_to_zip_test_3/nested_text_test_3.txt"
+        - content: |-
+            mkdir "./folder_to_zip_test_3/" && 
+            touch "./folder_to_zip_test_3/nested_text_test_3.txt"
     - path::./:
         title: TESTING ZIP folder_to_zip_test_3 dir
         inputs:
@@ -76,7 +78,12 @@ workflows:
     - script:
         title: Create folder with a symlink to a txt file for test_4
         inputs:
-        - content: touch "symlink_file_test_4.txt" && mkdir "./folder_to_zip_test_4/" && cd "./folder_to_zip_test_4" && ln -s  "../symlink_file_test_4.txt" && touch "nested_text_test_4.txt"
+        - content: |-
+            touch "symlink_file_test_4.txt" &&
+            mkdir "./folder_to_zip_test_4/" && 
+            cd "./folder_to_zip_test_4" && 
+            ln -s  "../symlink_file_test_4.txt" && 
+            touch "nested_text_test_4.txt"
     - path::./:
         title: TESTING ZIP folder_to_zip_test_4 dir
         inputs:
@@ -89,7 +96,13 @@ workflows:
     - script:
         title: Create folder with a nested symlink to a txt file for test_5
         inputs:
-        - content: mkdir "symlink_folder_test_5" && touch "symlink_folder_test_5/symlink_file_test_5.txt" && ln -s "symlink_folder_test_5/symlink_file_test_5.txt" && mkdir "./folder_to_zip_test_5/" && cd "./folder_to_zip_test_5" && ln -s  "../symlink_file_test_5.txt"
+        - content: |-
+            mkdir "symlink_folder_test_5" &&
+            touch "symlink_folder_test_5/symlink_file_test_5.txt" &&
+            ln -s "symlink_folder_test_5/symlink_file_test_5.txt" &&
+            mkdir "./folder_to_zip_test_5/" &&
+            cd "./folder_to_zip_test_5" &&
+            ln -s  "../symlink_file_test_5.txt"
     - path::./:
         title: TESTING ZIP folder_to_zip_test_5 dir
         inputs:
