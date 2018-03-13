@@ -36,7 +36,7 @@ func main() {
 	_, err := compress(configs.SourcePath, configs.TargetPath)
 
 	if err != nil {
-		fmt.Println(err)
+		fail("Issue with compress: %s", err)
 		return
 	}
 }
@@ -83,14 +83,32 @@ func compress(sourcePath string, targetPath string) (string, error) {
 			return err
 		}
 
+		isSymlink, evaledPath, originalPath, err := checkSymlink(path)
+		if err != nil {
+			return err
+		}
+
+		if isSymlink {
+			path = evaledPath
+		}
+
+		info, err = os.Lstat(path)
+		if err != nil {
+			return err
+		}
+
 		header, err := zip.FileInfoHeader(info)
 		if err != nil {
 			return err
 		}
 
 		if baseDir != "" {
+			if isSymlink {
+				header.Name = filepath.Join(baseDir, strings.TrimPrefix(originalPath, sourcePath))
+			} else {
+				header.Name = filepath.Join(baseDir, strings.TrimPrefix(path, sourcePath))
+			}
 
-			header.Name = filepath.Join(baseDir, strings.TrimPrefix(path, sourcePath))
 		} else {
 			baseDir = "/"
 		}
@@ -120,6 +138,23 @@ func compress(sourcePath string, targetPath string) (string, error) {
 	})
 
 	return fmt.Sprint(zipfile), nil
+}
+
+func checkSymlink(path string) (isSymlink bool, evaledPath string, originalPath string, error error) {
+	info, err := os.Lstat(path)
+	if err != nil {
+		return false, path, path, err
+	}
+
+	if info.Mode()&os.ModeSymlink == os.ModeSymlink {
+		evaledPath, err := filepath.EvalSymlinks(path)
+		if err != nil {
+			return true, path, path, err
+		}
+
+		return true, evaledPath, path, nil
+	}
+	return false, path, path, nil
 }
 
 func createConfigsModelFromEnvs() ConfigsModel {
