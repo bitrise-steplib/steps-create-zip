@@ -60,10 +60,19 @@ func compress(sourcePath string, targetPath string) (string, error) {
 		return "", err
 	}
 
-	defer zipfile.Close()
+	defer func() {
+		if err = zipfile.Close(); err != nil {
+			log.Errorf("%s", err)
+		}
+	}()
 
 	archive := zip.NewWriter(zipfile)
-	defer archive.Close()
+
+	defer func() {
+		if err = archive.Close(); err != nil {
+			log.Errorf("%s", err)
+		}
+	}()
 
 	info, err := os.Lstat(sourcePath)
 	if err != nil {
@@ -75,7 +84,7 @@ func compress(sourcePath string, targetPath string) (string, error) {
 		baseDir = filepath.Base(sourcePath)
 	}
 
-	filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -129,10 +138,19 @@ func compress(sourcePath string, targetPath string) (string, error) {
 		if err != nil {
 			return err
 		}
-		defer file.Close()
+
+		defer func() {
+			if err = file.Close(); err != nil {
+				log.Errorf("%s", err)
+			}
+		}()
+
 		_, err = io.Copy(writer, file)
 		return err
 	})
+	if err != nil {
+		return "", err
+	}
 
 	return fmt.Sprint(zipfile), nil
 }
@@ -166,7 +184,10 @@ func validateTargetPath(targetPath string) {
 	fmt.Print(dirOftargetPath)
 	if err := input.ValidateIfPathExists(dirOftargetPath); err != nil {
 		log.Printf("targetRootPath: %s does not exist", dirOftargetPath)
-		os.MkdirAll(dirOftargetPath, os.ModePerm)
+		err = os.MkdirAll(dirOftargetPath, os.ModePerm)
+		if err != nil {
+			log.Errorf("Failed to create directory, error: %s", err)
+		}
 	}
 }
 
