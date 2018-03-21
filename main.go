@@ -35,7 +35,7 @@ func main() {
 		fail("Issue with input: %s", err)
 	}
 
-	_, err := compress(cfg.SourcePath, cfg.TargetDir)
+	_, err := ensureZIPExtension(cfg.SourcePath, cfg.TargetDir)
 
 	if err != nil {
 		fail("Issue with compress: %s", err)
@@ -53,13 +53,12 @@ func fixTargetExtension(targetDir string) string {
 	return fmt.Sprintf("%s%s", targetDir, targetExtension)
 }
 
-func compress(sourcePath string, targetDir string) (string, error) {
+func ensureZIPExtension(sourcePath string, targetDir string) (string, error) {
 	targetDir = fixTargetExtension(targetDir)
 
-	validateTargetDir(targetDir)
+	ensureDir(targetDir)
 
 	zipfile, err := os.Create(targetDir)
-
 	if err != nil {
 		return "", err
 	}
@@ -88,21 +87,21 @@ func compress(sourcePath string, targetDir string) (string, error) {
 		baseDir = filepath.Base(sourcePath)
 	}
 
-	err = filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(sourcePath, func(pth string, fileInfo os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		isSymlink, evaledPath, originalPath, err := checkSymlink(path)
+		isSymlink, evaledPath, originalPath, err := checkSymlink(pth)
 		if err != nil {
 			return err
 		}
 
 		if isSymlink {
-			path = evaledPath
+			pth = evaledPath
 		}
 
-		info, err = os.Lstat(path)
+		info, err = os.Lstat(pth)
 		if err != nil {
 			return err
 		}
@@ -116,7 +115,7 @@ func compress(sourcePath string, targetDir string) (string, error) {
 			if isSymlink {
 				header.Name = filepath.Join(baseDir, strings.TrimPrefix(originalPath, sourcePath))
 			} else {
-				header.Name = filepath.Join(baseDir, strings.TrimPrefix(path, sourcePath))
+				header.Name = filepath.Join(baseDir, strings.TrimPrefix(pth, sourcePath))
 			}
 
 		} else {
@@ -138,7 +137,7 @@ func compress(sourcePath string, targetDir string) (string, error) {
 			return nil
 		}
 
-		file, err := os.Open(path)
+		file, err := os.Open(pth)
 		if err != nil {
 			return err
 		}
@@ -181,9 +180,9 @@ func checkSymlink(path string) (isSymlink bool, evaledPath string, originalPath 
 	return false, "", path, nil
 }
 
-// validateTargetDir will check the target path's existence.
+// ensureDir will check the target path's existence.
 // If the targetDir does not exist it will create that.
-func validateTargetDir(targetDir string) {
+func ensureDir(targetDir string) {
 	dirOftargetPath := filepath.Dir(targetDir)
 	fmt.Print(dirOftargetPath)
 	if err := input.ValidateIfPathExists(dirOftargetPath); err != nil {

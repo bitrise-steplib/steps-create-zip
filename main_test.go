@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test_fixTargetExtension(t *testing.T) {
+func TestFixTargetExtension(t *testing.T) {
 	type args struct {
 		targetDir string
 	}
@@ -87,7 +87,7 @@ func TestConfigsModel_validate(t *testing.T) {
 	}
 }
 
-func Test_validateTargetDir(t *testing.T) {
+func TestEnsureDir(t *testing.T) {
 	type args struct {
 		targetDir string
 	}
@@ -102,7 +102,7 @@ func Test_validateTargetDir(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			validateTargetDir(tt.args.targetDir)
+			ensureDir(tt.args.targetDir)
 		})
 	}
 }
