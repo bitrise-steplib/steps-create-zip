@@ -6,7 +6,7 @@ import (
 
 func Test_fixTargetExtension(t *testing.T) {
 	type args struct {
-		targetPath string
+		targetDir string
 	}
 	tests := []struct {
 		name string
@@ -36,7 +36,7 @@ func Test_fixTargetExtension(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := fixTargetExtension(tt.args.targetPath); got != tt.want {
+			if got := fixTargetExtension(tt.args.targetDir); got != tt.want {
 				t.Errorf("fixTargetExtension() = %v, want %v", got, tt.want)
 			}
 		})
@@ -46,7 +46,7 @@ func Test_fixTargetExtension(t *testing.T) {
 func TestConfigsModel_validate(t *testing.T) {
 	type fields struct {
 		SourcePath string
-		TargetPath string
+		TargetDir  string
 	}
 	tests := []struct {
 		name    string
@@ -69,7 +69,7 @@ func TestConfigsModel_validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "targetPath_empty",
+			name:    "targetDir_empty",
 			fields:  fields{"./folder", ""},
 			wantErr: true,
 		},
@@ -78,7 +78,7 @@ func TestConfigsModel_validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := config{
 				SourcePath: tt.fields.SourcePath,
-				TargetPath: tt.fields.TargetPath,
+				TargetDir:  tt.fields.TargetDir,
 			}
 			if err := cfg.validate(); (err != nil) != tt.wantErr {
 				t.Errorf("ConfigsModel.validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -87,9 +87,9 @@ func TestConfigsModel_validate(t *testing.T) {
 	}
 }
 
-func Test_validateTargetPath(t *testing.T) {
+func Test_validateTargetDir(t *testing.T) {
 	type args struct {
-		targetPath string
+		targetDir string
 	}
 	tests := []struct {
 		name string
@@ -102,7 +102,7 @@ func Test_validateTargetPath(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			validateTargetPath(tt.args.targetPath)
+			validateTargetDir(tt.args.targetDir)
 		})
 	}
 }

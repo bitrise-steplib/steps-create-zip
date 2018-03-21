@@ -17,7 +17,7 @@ import (
 // config ...
 type config struct {
 	SourcePath string `env:"source_path,required"`
-	TargetPath string `env:"target_path"`
+	TargetDir  string `env:"target_dir"`
 }
 
 func main() {
@@ -35,7 +35,7 @@ func main() {
 		fail("Issue with input: %s", err)
 	}
 
-	_, err := compress(cfg.SourcePath, cfg.TargetPath)
+	_, err := compress(cfg.SourcePath, cfg.TargetDir)
 
 	if err != nil {
 		fail("Issue with compress: %s", err)
@@ -43,22 +43,22 @@ func main() {
 	}
 }
 
-// Adds the file extension to the end of the targetpath if it's needed.
-func fixTargetExtension(targetPath string) string {
+// fixTargetExtension Adds the file extension to the end of the targetpath if it's needed.
+func fixTargetExtension(targetDir string) string {
 	targetExtension := ".zip"
 
-	if strings.HasSuffix(targetPath, targetExtension) {
-		return targetPath
+	if strings.HasSuffix(targetDir, targetExtension) {
+		return targetDir
 	}
-	return fmt.Sprintf("%s%s", targetPath, targetExtension)
+	return fmt.Sprintf("%s%s", targetDir, targetExtension)
 }
 
-func compress(sourcePath string, targetPath string) (string, error) {
-	targetPath = fixTargetExtension(targetPath)
+func compress(sourcePath string, targetDir string) (string, error) {
+	targetDir = fixTargetExtension(targetDir)
 
-	validateTargetPath(targetPath)
+	validateTargetDir(targetDir)
 
-	zipfile, err := os.Create(targetPath)
+	zipfile, err := os.Create(targetDir)
 
 	if err != nil {
 		return "", err
@@ -181,10 +181,10 @@ func checkSymlink(path string) (isSymlink bool, evaledPath string, originalPath 
 	return false, "", path, nil
 }
 
-// It will check the target path's existence.
-// If the targetPath does not exist it will create that.
-func validateTargetPath(targetPath string) {
-	dirOftargetPath := filepath.Dir(targetPath)
+// validateTargetDir will check the target path's existence.
+// If the targetDir does not exist it will create that.
+func validateTargetDir(targetDir string) {
+	dirOftargetPath := filepath.Dir(targetDir)
 	fmt.Print(dirOftargetPath)
 	if err := input.ValidateIfPathExists(dirOftargetPath); err != nil {
 		log.Printf("targetRootPath: %s does not exist", dirOftargetPath)
@@ -198,7 +198,7 @@ func validateTargetPath(targetPath string) {
 func (configs config) print() {
 	log.Infof("Create ZIP configs:")
 	log.Printf("- SourcePath: %s", configs.SourcePath)
-	log.Printf("- TargetPath: %s", configs.TargetPath)
+	log.Printf("- TargetDir: %s", configs.TargetDir)
 }
 
 func (configs config) validate() error {
@@ -206,8 +206,8 @@ func (configs config) validate() error {
 		return errors.New("issue with input SourcePath: " + err.Error())
 	}
 
-	if err := input.ValidateIfNotEmpty(configs.TargetPath); err != nil {
-		return errors.New("issue with input TargetPath: " + err.Error())
+	if err := input.ValidateIfNotEmpty(configs.TargetDir); err != nil {
+		return errors.New("issue with input TargetDir: " + err.Error())
 	}
 
 	if err := input.ValidateIfDirExists(configs.SourcePath); err != nil {
@@ -223,10 +223,10 @@ func fail(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
-// It will warn the user if the zip has already exist at the targetPath.
+// It will warn the user if the zip has already exist at the targetDir.
 // Just log a warning, still continues.
 func checkAlreadyExist(configs config) {
-	targetPathWithExtension := fixTargetExtension(configs.TargetPath)
+	targetPathWithExtension := fixTargetExtension(configs.TargetDir)
 	splittedTargetPathWithExtension := strings.Split(targetPathWithExtension, "/")
 
 	targetName := targetPathWithExtension
