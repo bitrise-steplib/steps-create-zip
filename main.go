@@ -92,10 +92,12 @@ func ensureZIPExtension(sourcePath string, targetDir string) (string, error) {
 			return err
 		}
 
-		isSymlink, evaledPath, originalPath, err := checkSymlink(pth)
+		isSymlink, evaledPath, err := checkSymlink(pth)
 		if err != nil {
 			return err
 		}
+
+		originalPath := pth
 
 		if isSymlink {
 			pth = evaledPath
@@ -161,23 +163,23 @@ func ensureZIPExtension(sourcePath string, targetDir string) (string, error) {
 // If the file is a symbolic link it will evaulate the path name.
 
 // If the target is a symbolic link it will return true, the evaulated path, and the original path.
-// If the target is  not a symbolic link it will return false, and the original path.
+// If the target is  not a symbolic link it will return false
 // If there is an error it will return the error.
-func checkSymlink(path string) (isSymlink bool, evaledPath string, originalPath string, error error) {
+func checkSymlink(path string) (isSymlink bool, evaledPath string, error error) {
 	info, err := os.Lstat(path)
 	if err != nil {
-		return false, "", path, err
+		return false, "", err
 	}
 
 	if info.Mode()&os.ModeSymlink == os.ModeSymlink {
 		evaledPath, err := filepath.EvalSymlinks(path)
 		if err != nil {
-			return true, "", path, err
+			return true, "", err
 		}
 
-		return true, evaledPath, path, nil
+		return true, evaledPath, nil
 	}
-	return false, "", path, nil
+	return false, "", nil
 }
 
 // ensureDir will check the target path's existence.
