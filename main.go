@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-tools/go-steputils/input"
 	"github.com/bitrise-tools/go-steputils/stepconf"
 )
@@ -186,14 +187,22 @@ func checkSymlink(path string) (isSymlink bool, evaledPath string, error error) 
 // If the targetDir does not exist it will create that.
 func ensureDir(targetDir string) {
 	dirOftargetPath := filepath.Dir(targetDir)
-	fmt.Print(dirOftargetPath)
-	if err := input.ValidateIfPathExists(dirOftargetPath); err != nil {
-		log.Printf("targetRootPath: %s does not exist", dirOftargetPath)
+
+	exits, err := pathutil.IsDirExists(dirOftargetPath)
+	if err != nil {
+		log.Errorf("Failed to open %s, error: %s", dirOftargetPath, err)
+	}
+
+	if exits == false {
+		fmt.Println()
+		log.Warnf("targetRootPath: %s does not exist", dirOftargetPath)
 		err = os.MkdirAll(dirOftargetPath, os.ModePerm)
 		if err != nil {
 			log.Errorf("Failed to create directory, error: %s", err)
 		}
 	}
+
+	checkAlreadyExist(targetDir)
 }
 
 func (configs config) print() {
@@ -215,7 +224,6 @@ func (configs config) validate() error {
 		return errors.New("issue with input SourcePath: " + err.Error())
 	}
 
-	checkAlreadyExist(configs)
 	return nil
 }
 
@@ -226,8 +234,8 @@ func fail(format string, v ...interface{}) {
 
 // It will warn the user if the zip has already exist at the targetDir.
 // Just log a warning, still continues.
-func checkAlreadyExist(configs config) {
-	targetPathWithExtension := fixTargetExtension(configs.TargetDir)
+func checkAlreadyExist(targetDir string) {
+	targetPathWithExtension := fixTargetExtension(targetDir)
 	splittedTargetPathWithExtension := strings.Split(targetPathWithExtension, "/")
 
 	targetName := targetPathWithExtension

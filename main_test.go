@@ -44,41 +44,42 @@ func TestFixTargetExtension(t *testing.T) {
 }
 
 func TestConfigsModel_validate(t *testing.T) {
-	type fields struct {
+	tests := []struct {
+		name       string
 		SourcePath string
 		TargetDir  string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		wantErr bool
+		wantErr    bool
 	}{
 		{
-			name:    "file",
-			fields:  fields{"./", "./"},
-			wantErr: false,
+			name:       "file",
+			SourcePath: "./",
+			TargetDir:  "./",
+			wantErr:    false,
 		},
 		{
-			name:    "not_exist",
-			fields:  fields{"./folder", "./"},
-			wantErr: true,
+			name:       "not_exist",
+			SourcePath: "./folder",
+			TargetDir:  "./",
+			wantErr:    true,
 		},
 		{
-			name:    "sourcPath_empty",
-			fields:  fields{"", "./folder"},
-			wantErr: true,
+			name:       "sourcPath_empty",
+			SourcePath: "",
+			TargetDir:  "./folder",
+			wantErr:    true,
 		},
 		{
-			name:    "targetDir_empty",
-			fields:  fields{"./folder", ""},
-			wantErr: true,
+			name:       "targetDir_empty",
+			SourcePath: "./folder",
+			TargetDir:  "",
+			wantErr:    true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cfg := config{
-				SourcePath: tt.fields.SourcePath,
-				TargetDir:  tt.fields.TargetDir,
+				SourcePath: tt.SourcePath,
+				TargetDir:  tt.TargetDir,
 			}
 			if err := cfg.validate(); (err != nil) != tt.wantErr {
 				t.Errorf("ConfigsModel.validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -88,21 +89,18 @@ func TestConfigsModel_validate(t *testing.T) {
 }
 
 func TestEnsureDir(t *testing.T) {
-	type args struct {
-		targetDir string
-	}
 	tests := []struct {
-		name string
-		args args
+		name      string
+		targetDir string
 	}{
 		{
-			name: "empty",
-			args: args{""},
+			name:      "empty",
+			targetDir: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ensureDir(tt.args.targetDir)
+			ensureDir(tt.targetDir)
 		})
 	}
 }
