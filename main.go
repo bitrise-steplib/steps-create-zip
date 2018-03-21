@@ -11,29 +11,31 @@ import (
 
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-tools/go-steputils/input"
+	"github.com/bitrise-tools/go-steputils/stepconf"
 )
 
-const (
-	targetExtension string = ".zip"
-)
-
-// ConfigsModel ...
-type ConfigsModel struct {
-	SourcePath string
-	TargetPath string
+// config ...
+type config struct {
+	SourcePath string `env:"source_path,required"`
+	TargetPath string `env:"target_path"`
 }
 
 func main() {
-	configs := createConfigsModelFromEnvs()
+	var cfg config
+	if err := stepconf.Parse(&cfg); err != nil {
+		log.Errorf("Error: %s\n", err)
+		os.Exit(1)
+	}
+	stepconf.Print(cfg)
 
 	fmt.Println()
-	configs.print()
+	cfg.print()
 
-	if err := configs.validate(); err != nil {
+	if err := cfg.validate(); err != nil {
 		fail("Issue with input: %s", err)
 	}
 
-	_, err := compress(configs.SourcePath, configs.TargetPath)
+	_, err := compress(cfg.SourcePath, cfg.TargetPath)
 
 	if err != nil {
 		fail("Issue with compress: %s", err)
@@ -43,6 +45,8 @@ func main() {
 
 // Adds the file extension to the end of the targetpath if it's needed.
 func fixTargetExtension(targetPath string) string {
+	targetExtension := ".zip"
+
 	if strings.HasSuffix(targetPath, targetExtension) {
 		return targetPath
 	}
@@ -191,21 +195,13 @@ func validateTargetPath(targetPath string) {
 	}
 }
 
-func createConfigsModelFromEnvs() ConfigsModel {
-
-	return ConfigsModel{
-		SourcePath: os.Getenv("source_path"),
-		TargetPath: os.Getenv("target_path"),
-	}
-}
-
-func (configs ConfigsModel) print() {
+func (configs config) print() {
 	log.Infof("Create ZIP configs:")
 	log.Printf("- SourcePath: %s", configs.SourcePath)
 	log.Printf("- TargetPath: %s", configs.TargetPath)
 }
 
-func (configs ConfigsModel) validate() error {
+func (configs config) validate() error {
 	if err := input.ValidateIfNotEmpty(configs.SourcePath); err != nil {
 		return errors.New("issue with input SourcePath: " + err.Error())
 	}
@@ -229,7 +225,7 @@ func fail(format string, v ...interface{}) {
 
 // It will warn the user if the zip has already exist at the targetPath.
 // Just log a warning, still continues.
-func checkAlreadyExist(configs ConfigsModel) {
+func checkAlreadyExist(configs config) {
 	targetPathWithExtension := fixTargetExtension(configs.TargetPath)
 	splittedTargetPathWithExtension := strings.Split(targetPathWithExtension, "/")
 

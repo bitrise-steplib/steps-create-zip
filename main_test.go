@@ -1,7 +1,6 @@
 package main
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -44,25 +43,6 @@ func Test_fixTargetExtension(t *testing.T) {
 	}
 }
 
-func Test_createConfigsModelFromEnvs(t *testing.T) {
-	tests := []struct {
-		name string
-		want ConfigsModel
-	}{
-		{
-			name: "",
-			want: ConfigsModel{"", ""},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := createConfigsModelFromEnvs(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("createConfigsModelFromEnvs() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestConfigsModel_validate(t *testing.T) {
 	type fields struct {
 		SourcePath string
@@ -96,11 +76,11 @@ func TestConfigsModel_validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			configs := ConfigsModel{
+			cfg := config{
 				SourcePath: tt.fields.SourcePath,
 				TargetPath: tt.fields.TargetPath,
 			}
-			if err := configs.validate(); (err != nil) != tt.wantErr {
+			if err := cfg.validate(); (err != nil) != tt.wantErr {
 				t.Errorf("ConfigsModel.validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
