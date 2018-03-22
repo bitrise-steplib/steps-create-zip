@@ -220,8 +220,13 @@ func (configs config) validate() error {
 		return errors.New("issue with input TargetDir: " + err.Error())
 	}
 
-	if err := input.ValidateIfDirExists(configs.SourcePath); err != nil {
-		return errors.New("issue with input SourcePath: " + err.Error())
+	exist, err := pathutil.IsPathExists(configs.SourcePath)
+	if err != nil {
+		return err
+	}
+
+	if !exist {
+		return errors.New("issue with input SourcePath: ")
 	}
 
 	return nil
