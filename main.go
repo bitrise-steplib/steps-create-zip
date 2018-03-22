@@ -130,21 +130,10 @@ func ensureZIPExtension(sourcePath string, destionation string) (err error) {
 			return nil
 		}
 
-		// file, err := os.Open(pth)
-		// if err != nil {
-		// 	return err
-		// }
-
 		fContent, err := ioutil.ReadFile(pth)
 		if err != nil {
 			return err
 		}
-
-		// defer func() {
-		// 	if err = file.Close(); err != nil {
-		// 		log.Errorf("%s", err)
-		// 	}
-		// }()
 
 		_, err = writer.Write(fContent)
 		return err
