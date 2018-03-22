@@ -2,7 +2,6 @@ package main
 
 import (
 	"archive/zip"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -15,10 +14,9 @@ import (
 	"github.com/bitrise-tools/go-steputils/stepconf"
 )
 
-// config ...
 type config struct {
-	SourcePath string `env:"source_path,required"`
-	TargetDir  string `env:"target_dir"`
+	SourcePath  string `env:"source_path,dir"`
+	Destination string `env:"destionation"`
 }
 
 func main() {
@@ -27,39 +25,24 @@ func main() {
 		log.Errorf("Error: %s\n", err)
 		os.Exit(1)
 	}
-	stepconf.Print(cfg)
-
-	fmt.Println()
 	cfg.print()
 
-	if err := cfg.validate(); err != nil {
-		fail("Issue with input: %s", err)
-	}
-
-	_, err := ensureZIPExtension(cfg.SourcePath, cfg.TargetDir)
+	_, err := ensureZIPExtension(cfg.SourcePath, cfg.Destination)
 
 	if err != nil {
-		fail("Issue with compress: %s", err)
+		failf("Issue with compress: %s", err)
 		return
 	}
 }
 
-// fixTargetExtension Adds the file extension to the end of the targetpath if it's needed.
-func fixTargetExtension(targetDir string) string {
-	targetExtension := ".zip"
-
-	if strings.HasSuffix(targetDir, targetExtension) {
-		return targetDir
+func ensureZIPExtension(sourcePath string, destionation string) (string, error) {
+	if !strings.HasPrefix(destionation, ".zip") {
+		destionation += ".zip"
 	}
-	return fmt.Sprintf("%s%s", targetDir, targetExtension)
-}
 
-func ensureZIPExtension(sourcePath string, targetDir string) (string, error) {
-	targetDir = fixTargetExtension(targetDir)
+	ensureDir(destionation)
 
-	ensureDir(targetDir)
-
-	zipfile, err := os.Create(targetDir)
+	zipfile, err := os.Create(destionation)
 	if err != nil {
 		return "", err
 	}
@@ -184,9 +167,9 @@ func checkSymlink(path string) (isSymlink bool, evaledPath string, error error) 
 }
 
 // ensureDir will check the target path's existence.
-// If the targetDir does not exist it will create that.
-func ensureDir(targetDir string) {
-	dirOftargetPath := filepath.Dir(targetDir)
+// If the destionation does not exist it will create that.
+func ensureDir(destionation string) {
+	dirOftargetPath := filepath.Dir(destionation)
 
 	exits, err := pathutil.IsDirExists(dirOftargetPath)
 	if err != nil {
@@ -202,45 +185,28 @@ func ensureDir(targetDir string) {
 		}
 	}
 
-	checkAlreadyExist(targetDir)
+	checkAlreadyExist(destionation)
 }
 
 func (configs config) print() {
 	log.Infof("Create ZIP configs:")
 	log.Printf("- SourcePath: %s", configs.SourcePath)
-	log.Printf("- TargetDir: %s", configs.TargetDir)
+	log.Printf("- TargetDir: %s", configs.Destination)
 }
 
-func (configs config) validate() error {
-	if err := input.ValidateIfNotEmpty(configs.SourcePath); err != nil {
-		return errors.New("issue with input SourcePath: " + err.Error())
-	}
-
-	if err := input.ValidateIfNotEmpty(configs.TargetDir); err != nil {
-		return errors.New("issue with input TargetDir: " + err.Error())
-	}
-
-	exist, err := pathutil.IsPathExists(configs.SourcePath)
-	if err != nil {
-		return err
-	}
-
-	if !exist {
-		return errors.New("issue with input SourcePath: ")
-	}
-
-	return nil
-}
-
-func fail(format string, v ...interface{}) {
+func failf(format string, v ...interface{}) {
 	log.Errorf(format, v...)
 	os.Exit(1)
 }
 
-// It will warn the user if the zip has already exist at the targetDir.
+// It will warn the user if the zip has already exist at the destionation.
 // Just log a warning, still continues.
-func checkAlreadyExist(targetDir string) {
-	targetPathWithExtension := fixTargetExtension(targetDir)
+func checkAlreadyExist(destionation string) {
+	targetPathWithExtension := destionation
+
+	if !strings.HasPrefix(targetPathWithExtension, ".zip") {
+		targetPathWithExtension += ".zip"
+	}
 	splittedTargetPathWithExtension := strings.Split(targetPathWithExtension, "/")
 
 	targetName := targetPathWithExtension

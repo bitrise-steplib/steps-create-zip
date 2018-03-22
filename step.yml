@@ -41,7 +41,7 @@ inputs:
       is_required: true
       value_options: []
 
-  - target_dir: $source_path.zip
+  - destionation: $source_path
     opts:
       title: "Target directory path"
       summary: The path of the directory where you want to move the compressed file.
