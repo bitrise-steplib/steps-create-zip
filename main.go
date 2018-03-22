@@ -42,7 +42,7 @@ func ensureZIPExtension(sourcePath string, destionation string) (err error) {
 
 	dirOftargetPath := filepath.Dir(destionation)
 
-	err = os.MkdirAll(dirOftargetPath, os.ModePerm)
+	err = os.MkdirAll(dirOftargetPath, 0755)
 	if err != nil {
 		log.Errorf("Failed to create directory, error: %s", err)
 	}
