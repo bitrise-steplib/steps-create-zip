@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-tools/go-steputils/input"
 	"github.com/bitrise-tools/go-steputils/stepconf"
 )
@@ -27,7 +26,7 @@ func main() {
 	}
 	cfg.print()
 
-	_, err := ensureZIPExtension(cfg.SourcePath, cfg.Destination)
+	err := ensureZIPExtension(cfg.SourcePath, cfg.Destination)
 
 	if err != nil {
 		failf("Issue with compress: %s", err)
@@ -35,7 +34,7 @@ func main() {
 	}
 }
 
-func ensureZIPExtension(sourcePath string, destionation string) (string, error) {
+func ensureZIPExtension(sourcePath string, destionation string) (err error) {
 	if !strings.HasPrefix(destionation, ".zip") {
 		destionation += ".zip"
 	}
@@ -44,7 +43,7 @@ func ensureZIPExtension(sourcePath string, destionation string) (string, error) 
 
 	zipfile, err := os.Create(destionation)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	defer func() {
@@ -53,25 +52,25 @@ func ensureZIPExtension(sourcePath string, destionation string) (string, error) 
 		}
 	}()
 
-	archive := zip.NewWriter(zipfile)
+	zipWriter := zip.NewWriter(zipfile)
 
 	defer func() {
-		if err = archive.Close(); err != nil {
-			log.Errorf("%s", err)
+		if cerr := zipWriter.Close(); err == nil {
+			err = cerr
 		}
 	}()
 
 	info, err := os.Lstat(sourcePath)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	var baseDir string
 	if !info.IsDir() {
-		baseDir = filepath.Base(sourcePath)
+		baseDir = filepath.Dir(sourcePath)
 	}
 
-	err = filepath.Walk(sourcePath, func(pth string, fileInfo os.FileInfo, err error) error {
+	if err := filepath.Walk(sourcePath, func(pth string, _ os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -114,7 +113,7 @@ func ensureZIPExtension(sourcePath string, destionation string) (string, error) 
 			header.Method = zip.Deflate
 		}
 
-		writer, err := archive.CreateHeader(header)
+		writer, err := zipWriter.CreateHeader(header)
 		if err != nil {
 			return err
 		}
@@ -136,12 +135,12 @@ func ensureZIPExtension(sourcePath string, destionation string) (string, error) 
 
 		_, err = io.Copy(writer, file)
 		return err
-	})
-	if err != nil {
-		return "", err
+
+	}); err != nil {
+		return err
 	}
 
-	return fmt.Sprint(zipfile), nil
+	return nil
 }
 
 // If the file is a symbolic link it will evaulate the path name.
@@ -171,18 +170,9 @@ func checkSymlink(path string) (isSymlink bool, evaledPath string, error error) 
 func ensureDir(destionation string) {
 	dirOftargetPath := filepath.Dir(destionation)
 
-	exits, err := pathutil.IsDirExists(dirOftargetPath)
+	err := os.MkdirAll(dirOftargetPath, os.ModePerm)
 	if err != nil {
-		log.Errorf("Failed to open %s, error: %s", dirOftargetPath, err)
-	}
-
-	if exits == false {
-		fmt.Println()
-		log.Warnf("targetRootPath: %s does not exist", dirOftargetPath)
-		err = os.MkdirAll(dirOftargetPath, os.ModePerm)
-		if err != nil {
-			log.Errorf("Failed to create directory, error: %s", err)
-		}
+		log.Errorf("Failed to create directory, error: %s", err)
 	}
 
 	checkAlreadyExist(destionation)
