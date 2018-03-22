@@ -103,11 +103,11 @@ workflows:
     - script:
         title: Create empty folder
         inputs:
-        - content: mkdir "/Users/birmachera/Downloads/folder_to_zip_test"
+        - content: mkdir "./folder_to_zip_test"
     - path::./:
         title: TESTING ZIP test
         inputs:
-        - source_path: /Users/birmachera/Downloads/folder_to_zip_test
+        - source_path: ./folder_to_zip_test
     after_run:
         - _test_folder_in_folder
 
@@ -117,11 +117,11 @@ workflows:
     - script:
         title: Create folder with empty folder inside
         inputs:
-        - content: mkdir -p "/Users/birmachera/Downloads/test_folder_in_folder/nested_empy_folder_test"
+        - content: mkdir -p "./test_folder_in_folder/nested_empy_folder_test"
     - path::./:
         title: TESTING ZIP folder in folder
         inputs:
-        - source_path: /Users/birmachera/Downloads/test_folder_in_folder
+        - source_path: ./test_folder_in_folder
     after_run:
         - _test_file_in_folder
 
@@ -131,13 +131,12 @@ workflows:
         title: Create folder with text file
         inputs:
         - content: |-
-            mkdir "/Users/birmachera/Downloads/Krisz_teszt" && 
-            touch "/Users/birmachera/Downloads/Krisz_teszt/Krisz_teszt.txt" &&
-            cd "/Users/birmachera/Downloads/"
+            mkdir "./test_file_in_folder/" && 
+            touch "./test_file_in_folder/nested_text_test.txt"
     - path::./:
         title: TESTING ZIP file in folder
         inputs:
-        - source_path: /Users/birmachera/Downloads/Krisz_teszt
+        - source_path: ./test_file_in_folder
     after_run:
         - _test_symlink
 
@@ -147,15 +146,15 @@ workflows:
         title: Create folder with a symlink to a txt file
         inputs:
         - content: |-
-            touch "/Users/birmachera/Downloads/symlink_file_test.txt" &&
-            mkdir "/Users/birmachera/Downloads/test_symlink/" && 
-            cd "/Users/birmachera/Downloads/test_symlink" && 
+            touch "symlink_file_test.txt" &&
+            mkdir "./test_symlink/" && 
+            cd "./test_symlink" && 
             ln -s  "../symlink_file_test.txt" && 
             touch "nested_text_test.txt"
     - path::./:
         title: TESTING ZIP symlink
         inputs:
-        - source_path: /Users/birmachera/Downloads/test_symlink
+        - source_path: ./test_symlink
     after_run:
         - _test_nested_symlink
 
@@ -165,11 +164,11 @@ workflows:
         title: Create folder with a nested symlink to a txt file
         inputs:
         - content: |-
-            mkdir "/Users/birmachera/Downloads/nested_symlink" &&
-            touch "/Users/birmachera/Downloads/nested_symlink/symlink_file.txt" &&
-            ln -s "/Users/birmachera/Downloads/nested_symlink/symlink_file.txt" &&
-            mkdir "/Users/birmachera/Downloads/test_nested_symlink/" &&
-            cd "/Users/birmachera/Downloads/test_nested_symlink" &&
+            mkdir "nested_symlink" &&
+            touch "nested_symlink/symlink_file.txt" &&
+            ln -s "nested_symlink/symlink_file.txt" &&
+            mkdir "./test_nested_symlink/" &&
+            cd "./test_nested_symlink" &&
             ln -s  "../symlink_file.txt"
     - path::./:
         title: TESTING ZIP nested symlink
@@ -184,11 +183,11 @@ workflows:
         title: Create text file
         inputs:
         - content: |
-            touch "/Users/birmachera/Downloads/file_only.txt"
+            touch "file_only.txt"
     - path::./:
         title: TESTING ZIP file only
         inputs:
-        - source_path: /Users/birmachera/Downloads/file_only.txt
+        - source_path: ./file_only.txt
 
   _prepare-and-setup:
     title: Prepare bitrise and install testing tools

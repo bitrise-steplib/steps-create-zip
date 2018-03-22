@@ -24,7 +24,8 @@ func main() {
 		log.Errorf("Error: %s\n", err)
 		os.Exit(1)
 	}
-	cfg.print()
+
+	stepconf.Print(cfg)
 
 	err := ensureZIPExtension(cfg.SourcePath, cfg.Destination)
 
@@ -39,7 +40,14 @@ func ensureZIPExtension(sourcePath string, destionation string) (err error) {
 		destionation += ".zip"
 	}
 
-	ensureDir(destionation)
+	dirOftargetPath := filepath.Dir(destionation)
+
+	err = os.MkdirAll(dirOftargetPath, os.ModePerm)
+	if err != nil {
+		log.Errorf("Failed to create directory, error: %s", err)
+	}
+
+	checkAlreadyExist(destionation)
 
 	zipfile, err := os.Create(destionation)
 	if err != nil {
@@ -109,9 +117,9 @@ func ensureZIPExtension(sourcePath string, destionation string) (err error) {
 
 		if info.IsDir() {
 			header.Name += "/"
-		} else {
-			header.Method = zip.Deflate
 		}
+
+		header.Method = zip.Deflate
 
 		writer, err := zipWriter.CreateHeader(header)
 		if err != nil {
@@ -143,10 +151,10 @@ func ensureZIPExtension(sourcePath string, destionation string) (err error) {
 	return nil
 }
 
-// If the file is a symbolic link it will evaulate the path name.
+// checkSymlink If the file is a symbolic link it will evaulate the path name.
 
 // If the target is a symbolic link it will return true, the evaulated path, and the original path.
-// If the target is  not a symbolic link it will return false
+// If the target is  not a symbolic link it will return false.
 // If there is an error it will return the error.
 func checkSymlink(path string) (isSymlink bool, evaledPath string, error error) {
 	info, err := os.Lstat(path)
@@ -163,25 +171,6 @@ func checkSymlink(path string) (isSymlink bool, evaledPath string, error error) 
 		return true, evaledPath, nil
 	}
 	return false, "", nil
-}
-
-// ensureDir will check the target path's existence.
-// If the destionation does not exist it will create that.
-func ensureDir(destionation string) {
-	dirOftargetPath := filepath.Dir(destionation)
-
-	err := os.MkdirAll(dirOftargetPath, os.ModePerm)
-	if err != nil {
-		log.Errorf("Failed to create directory, error: %s", err)
-	}
-
-	checkAlreadyExist(destionation)
-}
-
-func (configs config) print() {
-	log.Infof("Create ZIP configs:")
-	log.Printf("- SourcePath: %s", configs.SourcePath)
-	log.Printf("- TargetDir: %s", configs.Destination)
 }
 
 func failf(format string, v ...interface{}) {
