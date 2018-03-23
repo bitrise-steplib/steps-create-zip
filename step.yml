@@ -1,0 +1,54 @@
+
+title: |
+  Create ZIP
+summary: |
+  Create ZIP
+description: |
+  Create ZIP
+website: https://github.com/bitrise-steplib/steps-create-zip
+source_code_url: https://github.com/bitrise-steplib/steps-create-zip
+support_url: https://github.com/bitrise-steplib/steps-create-zip
+host_os_tags:
+  - osx-10.10
+  - ubuntu-16.04
+
+type_tags:
+  - utility
+
+is_requires_admin_user: true
+is_always_run: false
+is_skippable: false
+run_if: ""
+
+
+toolkit:
+  go:
+    package_name: github.com/birmachera/bitrise-step-create-zip
+
+
+inputs:
+  - source_path: ./
+    opts:
+      title: "Source directory path"
+      summary: The path of the directory which you want to compress with zip.
+      is_expand: true
+      is_required: true
+      value_options: []
+
+  - destination: $source_path
+    opts:
+      title: "Target directory path"
+      summary: The path of the directory where you want to move the compressed file.
+      is_expand: true
+      is_required: false
+      value_options: []
+
+outputs:
+  - EXAMPLE_STEP_OUTPUT:
+    opts:
+      title: "Example Step Output"
+      summary: Summary. No more than 2-3 sentences.
+      description: |
+        Description of this output.
+
+        Can be Markdown formatted text.

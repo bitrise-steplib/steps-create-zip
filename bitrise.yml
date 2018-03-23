@@ -1,0 +1,293 @@
+format_version: 5
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+app:
+  envs:
+  - BITRISE_STEP_ID: create-zip
+  - BITRISE_STEP_VERSION: "0.9.0"
+  - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-create-zip
+  - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
+
+
+workflows:
+  dep-update:
+    title: Dep update
+    description: |
+      Used for updating bitrise dependencies with dep
+    steps:
+    - script:
+        title: Dependency update
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            go get -u -v github.com/golang/dep/cmd/dep
+            dep ensure -v
+            dep ensure -v -update
+
+  go-test:
+    steps:
+    - script:
+        title: Export go files to test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            no_vendor_paths="$(go list ./... | grep -v vendor)"
+            envman add --key GOLIST_WITHOUT_VENDOR --value "$no_vendor_paths"
+    - script:
+        title: Err check
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            go get -u github.com/kisielk/errcheck
+            errcheck -asserts=true -blank=true $GOLIST_WITHOUT_VENDOR
+    - script:
+        title: Go lint
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            go get -u github.com/golang/lint/golint
+            while read -r line; do
+              echo "-> Linting: $line"
+              golint_out="$(golint $line)"
+              if [[ "${golint_out}" != "" ]] ; then
+                echo "=> Golint issues found:"
+                echo "${golint_out}"
+                exit 1
+              fi
+            done <<< "$GOLIST_WITHOUT_VENDOR"
+    - script:
+        title: Go test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            go test $(go list ./... | grep -v vendor)
+
+  ci:
+    title: Bitrise CI
+    description: |
+      1, Git clone bitrise repo and install testing tools
+      2, Run tests
+      3, Announce test result
+    before_run:
+    - _prepare-and-setup
+    - test
+    steps:
+    - slack:
+        title: Slack notifications
+        run_if: ".IsCI"
+        inputs:
+        - webhook_url: "$INTERNAL_DEV_SLACK_WEBHOOK_URL"
+        - channel: "$INTERNAL_DEV_LIFELINE_SLACK_CHANNEL"
+        - from_username: "${BIN_NAME} - CI - OK"
+        - from_username_on_error: "${BIN_NAME} - CI - ERROR"
+        - message: |-
+            CI was successful on branch: *${BITRISE_GIT_BRANCH}*
+
+            Build URL: ${BITRISE_BUILD_URL}
+        - message_on_error: |-
+            CI FAILED on branch: *${BITRISE_GIT_BRANCH}*
+
+            Build URL: ${BITRISE_BUILD_URL}
+
+  test:  
+    before_run:
+    - go-test
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            rm -rf "./_tmp"
+    - change-workdir:
+        title: Switch working dir to _tmp dir
+        run_if: true
+        inputs:
+        - path: "./_tmp"
+        - is_create_path: true
+    - script:
+        title: Create empty folder
+        inputs:
+        - content: mkdir "./folder_to_zip_test"
+    - path::./:
+        title: TESTING ZIP test
+        inputs:
+        - source_path: ./folder_to_zip_test
+    after_run:
+        - _test_folder_in_folder
+
+  _test_folder_in_folder:
+    steps:
+    steps:
+    - script:
+        title: Create folder with empty folder inside
+        inputs:
+        - content: mkdir -p "./test_folder_in_folder/nested_empy_folder_test"
+    - path::./:
+        title: TESTING ZIP folder in folder
+        inputs:
+        - source_path: ./test_folder_in_folder
+    after_run:
+        - _test_file_in_folder
+
+  _test_file_in_folder:
+    steps:
+    - script:
+        title: Create folder with text file
+        inputs:
+        - content: |-
+            mkdir "./test_file_in_folder/" && 
+            touch "./test_file_in_folder/nested_text_test.txt"
+    - path::./:
+        title: TESTING ZIP file in folder
+        inputs:
+        - source_path: ./test_file_in_folder
+    after_run:
+        - _test_symlink
+
+  _test_symlink:
+    steps:
+    - script:
+        title: Create folder with a symlink to a txt file
+        inputs:
+        - content: |-
+            touch "symlink_file_test.txt" &&
+            mkdir "./test_symlink/" && 
+            cd "./test_symlink" && 
+            ln -s  "../symlink_file_test.txt" && 
+            touch "nested_text_test.txt"
+    - path::./:
+        title: TESTING ZIP symlink
+        inputs:
+        - source_path: ./test_symlink
+    after_run:
+        - _test_nested_symlink
+
+  _test_nested_symlink:
+    steps:
+    - script:
+        title: Create folder with a nested symlink to a txt file
+        inputs:
+        - content: |-
+            mkdir "nested_symlink" &&
+            touch "nested_symlink/symlink_file.txt" &&
+            ln -s "nested_symlink/symlink_file.txt" &&
+            mkdir "./test_nested_symlink/" &&
+            cd "./test_nested_symlink" &&
+            ln -s  "../symlink_file.txt"
+    - path::./:
+        title: TESTING ZIP nested symlink
+        inputs:
+        - source_path: ./test_nested_symlink
+    after_run:
+        - _test_file_only
+
+  _test_file_only:
+    steps:
+    - script:
+        title: Create text file
+        inputs:
+        - content: |
+            touch "file_only.txt"
+    - path::./:
+        title: TESTING ZIP file only
+        inputs:
+        - source_path: ./file_only.txt
+
+  _prepare-and-setup:
+    title: Prepare bitrise and install testing tools
+    description: |
+        Prepares the environment for testing
+    steps:
+    - script:
+        is_skippable: true
+        inputs:
+        - content: brew update
+    - script:
+        title: Install testing tools
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+
+            # Check for unhandled errors
+            go get -u -v github.com/kisielk/errcheck
+
+            # Go lint
+            go get -u -v github.com/golang/lint/golint
+    - script:
+        title: Install bitrise tools
+        run_if: ".IsCI"
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            set -x
+
+            # Install envman
+            envman -v
+            curl -fL https://github.com/bitrise-io/envman/releases/download/1.1.0/envman-$(uname -s)-$(uname -m) > /usr/local/bin/envman
+            chmod +x /usr/local/bin/envman
+            envman -v
+
+            # Install stepman
+            stepman -v
+            curl -fL https://github.com/bitrise-io/stepman/releases/download/0.9.18/stepman-$(uname -s)-$(uname -m) > /usr/local/bin/stepman
+            chmod +x /usr/local/bin/stepman
+            stepman -v
+
+  # ----------------------------------------------------------------
+  # --- workflows to Share this step into a Step Library
+  audit-this-step:
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            stepman audit --step-yml ./step.yml
+
+  share-this-step:
+    envs:
+      # if you want to share this step into a StepLib
+      - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
+      - BITRISE_STEP_ID: $BITRISE_STEP_ID
+      - BITRISE_STEP_VERSION: $BITRISE_STEP_VERSION
+      - BITRISE_STEP_GIT_CLONE_URL: $BITRISE_STEP_GIT_CLONE_URL
+    description: |-
+      If this is the first time you try to share a Step you should
+      first call: $ bitrise share
+
+      This will print you a guide, and information about how Step sharing
+      works. Please read it at least once!
+
+      As noted in the Step sharing guide you'll have to fork the
+      StepLib you want to share this step into. Once you're done with forking
+      the repository you should set your own fork's git clone URL
+      in the `.bitrise.secrets.yml` file, or here in the `envs` section,
+      as the value of the `MY_STEPLIB_REPO_FORK_GIT_URL` environment.
+
+      You're now ready to share this Step, just make sure that
+      the `BITRISE_STEP_ID` and `BITRISE_STEP_VERSION`
+      environments are set to the desired values!
+
+      To share this Step into a StepLib you can just run: $ bitrise run share-this-step
+
+      Once it finishes the only thing left is to actually create a Pull Request,
+      the way described in the guide printed at the end of the process.
+    before_run:
+    - audit-this-step
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            bitrise share start -c "${MY_STEPLIB_REPO_FORK_GIT_URL}"
+            bitrise share create --stepid "${BITRISE_STEP_ID}" --tag "${BITRISE_STEP_VERSION}" --git "${BITRISE_STEP_GIT_CLONE_URL}"
+            bitrise share finish
