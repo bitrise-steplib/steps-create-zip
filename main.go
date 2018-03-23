@@ -14,8 +14,8 @@ import (
 )
 
 type config struct {
-	SourcePath  string `env:"source_path,dir"`
-	Destination string `env:"destionation"`
+	SourcePath  string `env:"source_path,file"`
+	Destination string `env:"destination"`
 }
 
 func main() {
@@ -35,21 +35,21 @@ func main() {
 	}
 }
 
-func ensureZIPExtension(sourcePath string, destionation string) (err error) {
-	if !strings.HasPrefix(destionation, ".zip") {
-		destionation += ".zip"
+func ensureZIPExtension(sourcePath string, destination string) (err error) {
+	if !strings.HasPrefix(destination, ".zip") {
+		destination += ".zip"
 	}
 
-	dirOftargetPath := filepath.Dir(destionation)
+	dirOftargetPath := filepath.Dir(destination)
 
 	err = os.MkdirAll(dirOftargetPath, 0755)
 	if err != nil {
 		log.Errorf("Failed to create directory, error: %s", err)
 	}
 
-	checkAlreadyExist(destionation)
+	checkAlreadyExist(destination)
 
-	zipfile, err := os.Create(destionation)
+	zipfile, err := os.Create(destination)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func ensureZIPExtension(sourcePath string, destionation string) (err error) {
 
 	var baseDir string
 	if !info.IsDir() {
-		baseDir = filepath.Dir(sourcePath)
+		baseDir = filepath.Base(sourcePath)
 	}
 
 	if err := filepath.Walk(sourcePath, func(pth string, _ os.FileInfo, err error) error {
@@ -109,6 +109,7 @@ func ensureZIPExtension(sourcePath string, destionation string) (err error) {
 				header.Name = filepath.Join(baseDir, strings.TrimPrefix(originalPath, sourcePath))
 			} else {
 				header.Name = filepath.Join(baseDir, strings.TrimPrefix(pth, sourcePath))
+
 			}
 
 		} else {
@@ -116,7 +117,12 @@ func ensureZIPExtension(sourcePath string, destionation string) (err error) {
 		}
 
 		if info.IsDir() {
-			header.Name += "/"
+			header.Name, err = filepath.Rel(sourcePath, pth)
+			if err != nil {
+				return err
+			}
+
+			header.Name += info.Name() + "/"
 		}
 
 		header.Method = zip.Deflate
@@ -172,10 +178,10 @@ func failf(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
-// It will warn the user if the zip has already exist at the destionation.
+// It will warn the user if the zip has already exist at the destination.
 // Just log a warning, still continues.
-func checkAlreadyExist(destionation string) {
-	targetPathWithExtension := destionation
+func checkAlreadyExist(destination string) {
+	targetPathWithExtension := destination
 
 	if !strings.HasPrefix(targetPathWithExtension, ".zip") {
 		targetPathWithExtension += ".zip"
