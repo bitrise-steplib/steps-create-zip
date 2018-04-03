@@ -8,6 +8,8 @@ app:
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-create-zip
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
 
+  - ZIPPED_DIR_PATH: ""
+  - UNZIPPED_DIR_PATH: ""
 
 workflows:
   dep-update:
@@ -118,7 +120,18 @@ workflows:
         title: TESTING ZIP test
         inputs:
         - source_path: ./folder_to_zip_test
+    - script:
+        title: Unzip
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip folder_to_zip_test.zip -d ./folder_to_zip_test_unzipped
+
+            envman add --key ZIPPED_DIR_PATH --value "folder_to_zip_test"
+            envman add --key UNZIPPED_DIR_PATH --value "folder_to_zip_test_unzipped/folder_to_zip_test"
     after_run:
+        # - _check_file_struct
         - _test_folder_in_folder
 
   _test_folder_in_folder:
@@ -132,7 +145,18 @@ workflows:
         title: TESTING ZIP folder in folder
         inputs:
         - source_path: ./test_folder_in_folder
+    - script:
+        title: Unzip
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip test_folder_in_folder.zip -d ./test_folder_in_folder_unzipped
+
+            envman add --key ZIPPED_DIR_PATH --value "test_folder_in_folder"
+            envman add --key UNZIPPED_DIR_PATH --value "test_folder_in_folder_unzipped/test_folder_in_folder"
     after_run:
+        - _check_file_struct
         - _test_file_in_folder
 
   _test_file_in_folder:
@@ -147,7 +171,18 @@ workflows:
         title: TESTING ZIP file in folder
         inputs:
         - source_path: ./test_file_in_folder
+    - script:
+        title: Unzip
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip test_file_in_folder.zip -d ./test_file_in_folder_unzipped
+
+            envman add --key ZIPPED_DIR_PATH --value "test_file_in_folder"
+            envman add --key UNZIPPED_DIR_PATH --value "test_file_in_folder_unzipped/test_file_in_folder"
     after_run:
+        - _check_file_struct
         - _test_symlink
 
   _test_symlink:
@@ -165,7 +200,18 @@ workflows:
         title: TESTING ZIP symlink
         inputs:
         - source_path: ./test_symlink
+    - script:
+        title: Unzip
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip test_symlink.zip -d ./test_symlink_unzipped
+
+            envman add --key ZIPPED_DIR_PATH --value "test_symlink"
+            envman add --key UNZIPPED_DIR_PATH --value "test_symlink_unzipped/test_symlink"
     after_run:
+        - _check_file_struct
         - _test_nested_symlink
 
   _test_nested_symlink:
@@ -184,7 +230,18 @@ workflows:
         title: TESTING ZIP nested symlink
         inputs:
         - source_path: ./test_nested_symlink
+    - script:
+        title: Unzip
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip test_nested_symlink.zip -d ./test_nested_symlink_unzipped
+
+            envman add --key ZIPPED_DIR_PATH --value "test_nested_symlink"
+            envman add --key UNZIPPED_DIR_PATH --value "test_nested_symlink_unzipped/test_nested_symlink"
     after_run:
+        - _check_file_struct
         - _test_file_only
 
   _test_file_only:
@@ -198,6 +255,24 @@ workflows:
         title: TESTING ZIP file only
         inputs:
         - source_path: ./file_only.txt
+
+  _check_file_struct:
+    steps:
+    - script:
+        title: Check zipped file structure
+        inputs:
+        - content: |-
+            echo Compare $ZIPPED_DIR_PATH\'s and $UNZIPPED_DIR_PATH\'s file structure
+            
+            before_zip="$(ls $ZIPPED_DIR_PATH)"
+            after_zip="$(ls $UNZIPPED_DIR_PATH)"
+
+            if [ ${before_zip} != ${after_zip} ]; then
+              echo The zipped file structure is different than the original!
+              echo Before zip - ${before_zip}
+              echo After zip - ${after_zip}
+              exit 1
+            fi
 
   _prepare-and-setup:
     title: Prepare bitrise and install testing tools

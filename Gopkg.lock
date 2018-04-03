@@ -6,25 +6,25 @@
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
+    "command",
+    "errorutil",
     "log",
     "parseutil",
     "pathutil",
-    "pointers"
+    "pointers",
+    "ziputil"
   ]
   revision = "b33f6bcef9b50045d7e62364b354584afc3ee329"
 
 [[projects]]
   branch = "master"
   name = "github.com/bitrise-tools/go-steputils"
-  packages = [
-    "input",
-    "stepconf"
-  ]
-  revision = "b0e1079aa921440413a5c56f301246fe8367c072"
+  packages = ["stepconf"]
+  revision = "d4d9e08cc4347e8784bb18419fcdceb932e17019"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8321e89bd1aa5279abe810a8cd7bdd6aec3d3a69e038ae015dbad666d07c83c5"
+  inputs-digest = "808c72e7bba6f32b5a8c56a60ada001049943ed651cfa1aa2d5349230346c073"
   solver-name = "gps-cdcl"
   solver-version = 1
