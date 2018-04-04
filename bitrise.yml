@@ -255,6 +255,7 @@ workflows:
         title: TESTING ZIP file only
         inputs:
         - source_path: ./file_only.txt
+        - destination: ./test_file_only
 
   _check_file_struct:
     steps:
