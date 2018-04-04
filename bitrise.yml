@@ -8,8 +8,8 @@ app:
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-create-zip
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
 
-  - ZIPPED_DIR_PATH: ""
-  - UNZIPPED_DIR_PATH: ""
+  - ZIPPED_DIR_PATH: 
+  - UNZIPPED_DIR_PATH: 
 
 workflows:
   dep-update:
@@ -295,26 +295,6 @@ workflows:
 
             # Go lint
             go get -u -v github.com/golang/lint/golint
-    - script:
-        title: Install bitrise tools
-        run_if: ".IsCI"
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            set -e
-            set -x
-
-            # Install envman
-            envman -v
-            curl -fL https://github.com/bitrise-io/envman/releases/download/1.1.0/envman-$(uname -s)-$(uname -m) > /usr/local/bin/envman
-            chmod +x /usr/local/bin/envman
-            envman -v
-
-            # Install stepman
-            stepman -v
-            curl -fL https://github.com/bitrise-io/stepman/releases/download/0.9.18/stepman-$(uname -s)-$(uname -m) > /usr/local/bin/stepman
-            chmod +x /usr/local/bin/stepman
-            stepman -v
 
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library

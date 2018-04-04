@@ -2,9 +2,10 @@
 title: |
   Create ZIP
 summary: |
-  Create ZIP
+  Creates a ZIP from the given file/dir to the given destination.
 description: |
-  Create ZIP
+  Creates a ZIP from the given file/dir to the given destination. 
+  It stores symlinks as symlinks ( it will not copy the file which the symlink is pointing ).
 website: https://github.com/bitrise-steplib/steps-create-zip
 source_code_url: https://github.com/bitrise-steplib/steps-create-zip
 support_url: https://github.com/bitrise-steplib/steps-create-zip
@@ -27,7 +28,7 @@ toolkit:
 
 
 inputs:
-  - source_path: ./
+  - source_path:
     opts:
       title: "Source directory path"
       summary: The path of the directory which you want to compress with zip.
@@ -42,13 +43,3 @@ inputs:
       is_expand: true
       is_required: false
       value_options: []
-
-outputs:
-  - EXAMPLE_STEP_OUTPUT:
-    opts:
-      title: "Example Step Output"
-      summary: Summary. No more than 2-3 sentences.
-      description: |
-        Description of this output.
-
-        Can be Markdown formatted text.

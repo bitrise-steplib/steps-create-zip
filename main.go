@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
@@ -27,8 +26,9 @@ func main() {
 	stepconf.Print(cfg)
 
 	destination := cfg.Destination
-	if !strings.HasSuffix(destination, ".zip") {
+	if filepath.Ext(destination) == "" {
 		destination += ".zip"
+
 	}
 
 	if err := checkAlreadyExist(destination); err != nil {
