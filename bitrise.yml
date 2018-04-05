@@ -8,9 +8,6 @@ app:
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-create-zip
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
 
-  - ZIPPED_DIR_PATH: 
-  - UNZIPPED_DIR_PATH: 
-
 workflows:
   dep-update:
     title: Dep update
@@ -132,7 +129,6 @@ workflows:
             envman add --key ZIPPED_DIR_PATH --value "folder_to_zip_test"
             envman add --key UNZIPPED_DIR_PATH --value "folder_to_zip_test_unzipped/test_folder_to_zip_test"
     after_run:
-        # - _check_file_struct
         - _test_folder_in_folder
 
   _test_folder_in_folder:

@@ -48,17 +48,10 @@ func ensureZIP(sourcePath string, destination string) error {
 	}
 
 	if info.IsDir() {
-		if err := ziputil.ZipDir(sourcePath, destination, false); err != nil {
-			return err
-		}
-
-	} else {
-		if err := ziputil.ZipFile(sourcePath, destination); err != nil {
-			return err
-		}
+		return ziputil.ZipDir(sourcePath, destination, false)
 	}
 
-	return nil
+	return ziputil.ZipFile(sourcePath, destination)
 }
 
 // checkAlreadyExist will return an error if the zip has already exist at the destination.
@@ -110,12 +103,7 @@ func fixDestinationExt(destination string) string {
 
 func ensureDestinationPath(destination string) error {
 	dirOftargetPath := filepath.Dir(destination)
-
-	if err := os.MkdirAll(dirOftargetPath, 0755); err != nil {
-		return fmt.Errorf("Failed to create directory, error: %s", err)
-	}
-
-	return nil
+	return os.MkdirAll(dirOftargetPath, 0755)
 }
 
 func checkDestinationIsDir(destination string) (bool, error) {
