@@ -5,7 +5,7 @@ app:
   envs:
   - BITRISE_STEP_ID: create-zip
   - BITRISE_STEP_VERSION: "0.9.0"
-  - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-create-zip
+  - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/steps-create-zip.git
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
 
 workflows:
