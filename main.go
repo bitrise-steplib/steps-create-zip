@@ -26,9 +26,9 @@ func main() {
 	stepconf.Print(cfg)
 
 	destination := cfg.Destination
-	if filepath.Ext(destination) == "" {
-		destination += ".zip"
-
+	destination, err := fixDestination(destination, cfg.SourcePath)
+	if err != nil {
+		failf("Issue with compress: %s", err)
 	}
 
 	if err := checkAlreadyExist(destination); err != nil {
@@ -42,12 +42,6 @@ func main() {
 }
 
 func ensureZIP(sourcePath string, destination string) error {
-	dirOftargetPath := filepath.Dir(destination)
-
-	if err := os.MkdirAll(dirOftargetPath, 0755); err != nil {
-		return fmt.Errorf("Failed to create directory, error: %s", err)
-	}
-
 	info, err := os.Lstat(sourcePath)
 	if err != nil {
 		return err
@@ -81,6 +75,65 @@ func checkAlreadyExist(destination string) error {
 	}
 
 	return nil
+}
+
+func fixDestination(destination string, sourcePath string) (string, error) {
+	destination = cleanDestination(destination)
+
+	if err := ensureDestinationPath(destination); err != nil {
+		return "", err
+	}
+
+	isDir, err := checkDestinationIsDir(destination)
+	if err != nil {
+		return "", err
+	}
+
+	if isDir {
+		destination = filepath.Join(destination, filepath.Base(sourcePath))
+	}
+	destination = fixDestinationExt(destination)
+
+	return destination, nil
+}
+
+func cleanDestination(destination string) string {
+	return filepath.Clean(destination)
+}
+
+func fixDestinationExt(destination string) string {
+	if filepath.Ext(destination) == "" {
+		destination += ".zip"
+	}
+	return destination
+}
+
+func ensureDestinationPath(destination string) error {
+	dirOftargetPath := filepath.Dir(destination)
+
+	if err := os.MkdirAll(dirOftargetPath, 0755); err != nil {
+		return fmt.Errorf("Failed to create directory, error: %s", err)
+	}
+
+	return nil
+}
+
+func checkDestinationIsDir(destination string) (bool, error) {
+	exist, err := pathutil.IsPathExists(destination)
+	if err != nil {
+		return false, err
+	}
+
+	if !exist {
+		return false, nil
+	}
+
+	info, err := os.Lstat(destination)
+	if err != nil {
+		return false, err
+	}
+
+	return info.IsDir(), nil
 }
 
 func failf(format string, v ...interface{}) {

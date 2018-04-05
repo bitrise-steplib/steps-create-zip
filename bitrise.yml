@@ -120,6 +120,7 @@ workflows:
         title: TESTING ZIP test
         inputs:
         - source_path: ./folder_to_zip_test
+        - destination: ./folder_to_zip_test.zip
     - script:
         title: Unzip
         inputs:
@@ -129,7 +130,7 @@ workflows:
             unzip folder_to_zip_test.zip -d ./folder_to_zip_test_unzipped
 
             envman add --key ZIPPED_DIR_PATH --value "folder_to_zip_test"
-            envman add --key UNZIPPED_DIR_PATH --value "folder_to_zip_test_unzipped/folder_to_zip_test"
+            envman add --key UNZIPPED_DIR_PATH --value "folder_to_zip_test_unzipped/test_folder_to_zip_test"
     after_run:
         # - _check_file_struct
         - _test_folder_in_folder
@@ -145,6 +146,7 @@ workflows:
         title: TESTING ZIP folder in folder
         inputs:
         - source_path: ./test_folder_in_folder
+        - destination: ./
     - script:
         title: Unzip
         inputs:
@@ -171,6 +173,7 @@ workflows:
         title: TESTING ZIP file in folder
         inputs:
         - source_path: ./test_file_in_folder
+        - destination: ./test_file_in_folder.zip
     - script:
         title: Unzip
         inputs:
@@ -200,6 +203,7 @@ workflows:
         title: TESTING ZIP symlink
         inputs:
         - source_path: ./test_symlink
+        - destination: ./test_symlink.zip
     - script:
         title: Unzip
         inputs:
@@ -230,6 +234,7 @@ workflows:
         title: TESTING ZIP nested symlink
         inputs:
         - source_path: ./test_nested_symlink
+        - destination: ./test_nested_symlink.zip
     - script:
         title: Unzip
         inputs:

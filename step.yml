@@ -32,14 +32,16 @@ inputs:
     opts:
       title: "Source directory path"
       summary: The path of the directory which you want to compress with zip.
+      description: The path of the directory which you want to compress with zip.
       is_expand: true
       is_required: true
       value_options: []
 
-  - destination: $source_path
+  - destination:
     opts:
       title: "Target directory path"
       summary: The path of the directory where you want to move the compressed file.
+      description: The path of the directory where you want to move the compressed file.
       is_expand: true
-      is_required: false
+      is_required: true
       value_options: []
