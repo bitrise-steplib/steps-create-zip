@@ -76,7 +76,6 @@ workflows:
 
   _test_folder_in_folder:
     steps:
-    steps:
     - script:
         title: Create folder with empty folder inside
         inputs:
@@ -184,6 +183,33 @@ workflows:
 
             envman add --key ZIPPED_DIR_PATH --value "test_nested_symlink"
             envman add --key UNZIPPED_DIR_PATH --value "test_nested_symlink_unzipped/test_nested_symlink"
+    after_run:
+        - _test_complex_folder_name
+
+  _test_complex_folder_name:
+    steps:
+    - script:
+        title: Create folder that has an extension
+        inputs:
+        - content: |-
+            mkdir complex_folder &&
+            mkdir "folder_structure.apk" &&
+            touch "folder_structure.apk/test_file.txt"
+    - path::./:
+        title: TESTING ZIP complex folder name
+        inputs:
+        - source_path: ./folder_structure.apk
+        - destination: ./complex_folder
+    - script:
+        title: Unzip
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip complex_folder/folder_structure.apk.zip -d ./unzipped_complex_folder
+
+            envman add --key ZIPPED_DIR_PATH --value "folder_structure.apk"
+            envman add --key UNZIPPED_DIR_PATH --value "unzipped_complex_folder/folder_structure.apk"
     after_run:
         - _check_file_struct
         - _test_file_only
