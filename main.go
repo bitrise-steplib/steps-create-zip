@@ -95,7 +95,7 @@ func cleanDestination(destination string) string {
 }
 
 func fixDestinationExt(destination string) string {
-	if filepath.Ext(destination) == "" {
+	if filepath.Ext(destination) != "zip" {
 		destination += ".zip"
 	}
 	return destination
