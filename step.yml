@@ -1,12 +1,11 @@
 title: Create ZIP
 summary: Creates a ZIP from the given file/dir to the given destination.
 description: |-
-Creates a ZIP from the given file/dir to the given destination.
   It stores symlinks as symlinks (it will not copy the file which the symlink is pointing to).
 
   ### Configuring the Step
   
-  1. In the **Source directory** path, you have to provide the directory you want to compress.          
+  1. In the **Source directory** path, provide the directory you want to compress.          
   2. In the **Target directory path** input, you can select where to output the compressed file. 
   
   ### Troubleshooting
