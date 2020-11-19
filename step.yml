@@ -1,11 +1,22 @@
-
-title: |
-  Create ZIP
-summary: |
-  Creates a ZIP from the given file/dir to the given destination.
-description: |
-  Creates a ZIP from the given file/dir to the given destination.
+title: Create ZIP
+summary: Creates a ZIP from the given file/dir to the given destination.
+description: |-
   It stores symlinks as symlinks (it will not copy the file which the symlink is pointing to).
+
+  ### Configuring the Step
+  
+  1. In the **Source directory** path, provide the directory you want to compress.          
+  2. In the **Target directory path** input, you can select where to output the compressed file. 
+  
+  ### Troubleshooting
+ 
+  If the **Source directory** path does not exist, there will be an error.
+  If the folder structure belonging to the destination does not exist, you will be notified with a warning in the log and then the Step will create it.
+  If a ZIP exists on the specified destination, the user will be notified with a warning in the log and then the previous file will be overwritten.
+
+  ### Related Steps
+  
+   - [Deploy to Bitrise.io](https://www.bitrise.io/integrations/steps/deploy-to-bitrise-io)
 website: https://github.com/bitrise-steplib/steps-create-zip
 source_code_url: https://github.com/bitrise-steplib/steps-create-zip
 support_url: https://github.com/bitrise-steplib/steps-create-zip
