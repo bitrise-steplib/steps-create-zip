@@ -10,9 +10,9 @@ description: |-
   
   ### Troubleshooting
  
- If the **Source directory** path does not exist, there will be an error.
- If the folder structure belonging to the destination does not exist, you will be notified with a warning in the log and then the Step will create it.
- If a ZIP exists on the specified destination, the user will be notified with a warning in the log and then the previous file will be overwritten.
+  If the **Source directory** path does not exist, there will be an error.
+  If the folder structure belonging to the destination does not exist, you will be notified with a warning in the log and then the Step will create it.
+  If a ZIP exists on the specified destination, the user will be notified with a warning in the log and then the previous file will be overwritten.
 
   ### Related Steps
   
