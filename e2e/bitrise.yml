@@ -185,6 +185,5 @@ workflows:
         title: Switch working dir to _tmp dir
         run_if: "true"
         inputs:
-        - path: "./_tmp"
+        - path: ./_tmp
         - is_create_path: true
-

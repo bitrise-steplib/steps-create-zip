@@ -11,8 +11,8 @@ It stores symlinks as symlinks (it will not copy the file which the symlink is p
 
 ### Configuring the Step
 
-1. In the **Source directory** path, provide the directory you want to compress.          
-2. In the **Target directory path** input, you can select where to output the compressed file. 
+1. In the **Source directory** path, provide the directory you want to compress.
+2. In the **Target directory path** input, you can select where to output the compressed file.
 
 ### Troubleshooting
 
