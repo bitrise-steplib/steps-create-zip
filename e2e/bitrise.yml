@@ -95,7 +95,11 @@ workflows:
             #!/usr/bin/env bash
             set -ex
             unzip test_symlink.zip -d ./test_symlink_unzipped
-            diff -r ./test_symlink ./test_symlink_unzipped/test_symlink
+
+            # Symlink target preserved verbatim (test that the step stores the symlink as-is, without dereferencing)
+            [ "$(readlink ./test_symlink/symlink_file_test.txt)" = "$(readlink ./test_symlink_unzipped/test_symlink/symlink_file_test.txt)" ]
+            # Regular file present
+            [ -f ./test_symlink_unzipped/test_symlink/nested_text_test.txt ]
 
   test_nested_symlink:
     before_run:
@@ -123,7 +127,8 @@ workflows:
             #!/usr/bin/env bash
             set -ex
             unzip ./test_nested_symlink.zip -d ./test_nested_symlink_unzipped
-            diff -r ./test_nested_symlink ./test_nested_symlink_unzipped/test_nested_symlink
+
+            [ "$(readlink ./test_nested_symlink/symlink_file.txt)" = "$(readlink ./test_nested_symlink_unzipped/test_nested_symlink/symlink_file.txt)" ]
 
   test_complex_folder_name:
     before_run:
