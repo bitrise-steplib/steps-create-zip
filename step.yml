@@ -35,7 +35,7 @@ run_if: ""
 
 toolkit:
   go:
-    package_name: github.com/birmachera/bitrise-step-create-zip
+    package_name: github.com/bitrise-steplib/steps-create-zip
 
 
 inputs:
