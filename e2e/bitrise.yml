@@ -1,0 +1,213 @@
+format_version: "11"
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+workflows:
+  test_folder_to_zip:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create empty folder
+        inputs:
+        - content: mkdir "./folder_to_zip_test"
+    - path::./:
+        title: Zip folder
+        inputs:
+        - source_path: ./folder_to_zip_test
+        - destination: ./folder_to_zip_test.zip
+    - script:
+        title: Unzip
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip folder_to_zip_test.zip -d ./folder_to_zip_test_unzipped
+
+            envman add --key ZIPPED_DIR_PATH --value "folder_to_zip_test"
+            envman add --key UNZIPPED_DIR_PATH --value "folder_to_zip_test_unzipped/folder_to_zip_test"
+    after_run:
+    - _check_file_struct
+
+  test_folder_in_folder:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create folder with empty folder inside
+        inputs:
+        - content: mkdir -p "./test_folder_in_folder/nested_empty_folder_test"
+    - path::./:
+        title: Zip folder in folder
+        inputs:
+        - source_path: ./test_folder_in_folder
+        - destination: ./
+    - script:
+        title: Unzip
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip test_folder_in_folder.zip -d ./test_folder_in_folder_unzipped
+
+            envman add --key ZIPPED_DIR_PATH --value "test_folder_in_folder"
+            envman add --key UNZIPPED_DIR_PATH --value "test_folder_in_folder_unzipped/test_folder_in_folder"
+    after_run:
+    - _check_file_struct
+
+  test_file_in_folder:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create folder with text file
+        inputs:
+        - content: |-
+            mkdir "./test_file_in_folder/" &&
+            touch "./test_file_in_folder/nested_text_test.txt"
+    - path::./:
+        title: Zip file in folder
+        inputs:
+        - source_path: ./test_file_in_folder
+        - destination: ./test_file_in_folder.zip
+    - script:
+        title: Unzip
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip test_file_in_folder.zip -d ./test_file_in_folder_unzipped
+
+            envman add --key ZIPPED_DIR_PATH --value "test_file_in_folder"
+            envman add --key UNZIPPED_DIR_PATH --value "test_file_in_folder_unzipped/test_file_in_folder"
+    after_run:
+    - _check_file_struct
+
+  test_symlink:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create folder with a symlink to a txt file
+        inputs:
+        - content: |-
+            touch "symlink_file_test.txt" &&
+            mkdir "./test_symlink/" &&
+            cd "./test_symlink" &&
+            ln -s  "../symlink_file_test.txt" &&
+            touch "nested_text_test.txt"
+    - path::./:
+        title: Zip symlink
+        inputs:
+        - source_path: ./test_symlink
+        - destination: ./test_symlink.zip
+    - script:
+        title: Unzip
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip test_symlink.zip -d ./test_symlink_unzipped
+
+            envman add --key ZIPPED_DIR_PATH --value "test_symlink"
+            envman add --key UNZIPPED_DIR_PATH --value "test_symlink_unzipped/test_symlink"
+    after_run:
+    - _check_file_struct
+
+  test_nested_symlink:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create folder with a nested symlink to a txt file
+        inputs:
+        - content: |-
+            mkdir "nested_symlink" &&
+            touch "nested_symlink/symlink_file.txt" &&
+            ln -s "nested_symlink/symlink_file.txt" &&
+            mkdir "./test_nested_symlink/" &&
+            cd "./test_nested_symlink" &&
+            ln -s  "../symlink_file.txt"
+    - path::./:
+        title: Zip nested symlink
+        inputs:
+        - source_path: ./test_nested_symlink
+        - destination: ./test_nested_symlink.zip
+
+  test_complex_folder_name:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create folder that has an extension
+        inputs:
+        - content: |-
+            mkdir complex_folder &&
+            mkdir "folder_structure.apk" &&
+            touch "folder_structure.apk/test_file.txt"
+    - path::./:
+        title: Zip complex folder name
+        inputs:
+        - source_path: ./folder_structure.apk
+        - destination: ./complex_folder
+    - script:
+        title: Unzip
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip complex_folder/folder_structure.apk.zip -d ./unzipped_complex_folder
+
+            envman add --key ZIPPED_DIR_PATH --value "folder_structure.apk"
+            envman add --key UNZIPPED_DIR_PATH --value "unzipped_complex_folder/folder_structure.apk"
+    after_run:
+    - _check_file_struct
+
+  test_file_only:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create text file
+        inputs:
+        - content: touch "file_only.txt"
+    - path::./:
+        title: Zip file only
+        inputs:
+        - source_path: ./file_only.txt
+        - destination: ./test_file_only
+
+  _setup:
+    steps:
+    - script:
+        title: Clean _tmp dir
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            rm -rf "./_tmp"
+    - change-workdir:
+        title: Switch working dir to _tmp dir
+        run_if: "true"
+        inputs:
+        - path: "./_tmp"
+        - is_create_path: true
+
+  _check_file_struct:
+    steps:
+    - script:
+        title: Check zipped file structure
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            echo "Compare $ZIPPED_DIR_PATH and $UNZIPPED_DIR_PATH file structure"
+
+            before_zip="$(ls $ZIPPED_DIR_PATH)"
+            after_zip="$(ls $UNZIPPED_DIR_PATH)"
+
+            if [ "${before_zip}" != "${after_zip}" ]; then
+              echo "The zipped file structure is different than the original!"
+              echo "Before zip - ${before_zip}"
+              echo "After zip - ${after_zip}"
+              exit 1
+            fi
