@@ -1,0 +1,194 @@
+format_version: "11"
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+workflows:
+  test_folder_to_zip:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create empty folder
+        inputs:
+        - content: mkdir "./folder_to_zip_test"
+    - path::./:
+        title: Zip folder
+        inputs:
+        - source_path: ./folder_to_zip_test
+        - destination: ./folder_to_zip_test.zip
+    - script:
+        title: test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            unzip folder_to_zip_test.zip -d ./folder_to_zip_test_unzipped
+            diff -r ./folder_to_zip_test ./folder_to_zip_test_unzipped/folder_to_zip_test
+
+  test_folder_in_folder:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create folder with empty folder inside
+        inputs:
+        - content: mkdir -p "./test_folder_in_folder/nested_empty_folder_test"
+    - path::./:
+        title: Zip folder in folder
+        inputs:
+        - source_path: ./test_folder_in_folder
+        - destination: ./
+    - script:
+        title: test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            unzip test_folder_in_folder.zip -d ./test_folder_in_folder_unzipped
+            diff -r ./test_folder_in_folder ./test_folder_in_folder_unzipped/test_folder_in_folder
+
+  test_file_in_folder:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create folder with text file
+        inputs:
+        - content: |-
+            mkdir "./test_file_in_folder/" &&
+            touch "./test_file_in_folder/nested_text_test.txt"
+    - path::./:
+        title: Zip file in folder
+        inputs:
+        - source_path: ./test_file_in_folder
+        - destination: ./test_file_in_folder.zip
+    - script:
+        title: test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            unzip test_file_in_folder.zip -d ./test_file_in_folder_unzipped
+            diff -r ./test_file_in_folder ./test_file_in_folder_unzipped/test_file_in_folder
+
+  test_symlink:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create folder with a symlink to a txt file
+        inputs:
+        - content: |-
+            touch "symlink_file_test.txt" &&
+            mkdir "./test_symlink/" &&
+            cd "./test_symlink" &&
+            ln -s  "../symlink_file_test.txt" &&
+            touch "nested_text_test.txt"
+    - path::./:
+        title: Zip symlink
+        inputs:
+        - source_path: ./test_symlink
+        - destination: ./test_symlink.zip
+    - script:
+        title: test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            unzip test_symlink.zip -d ./test_symlink_unzipped
+
+            # Symlink target preserved verbatim (test that the step stores the symlink as-is, without dereferencing)
+            [ "$(readlink ./test_symlink/symlink_file_test.txt)" = "$(readlink ./test_symlink_unzipped/test_symlink/symlink_file_test.txt)" ]
+            # Regular file present
+            [ -f ./test_symlink_unzipped/test_symlink/nested_text_test.txt ]
+
+  test_nested_symlink:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create folder with a nested symlink to a txt file
+        inputs:
+        - content: |-
+            mkdir "nested_symlink" &&
+            touch "nested_symlink/symlink_file.txt" &&
+            ln -s "nested_symlink/symlink_file.txt" &&
+            mkdir "./test_nested_symlink/" &&
+            cd "./test_nested_symlink" &&
+            ln -s  "../symlink_file.txt"
+    - path::./:
+        title: Zip nested symlink
+        inputs:
+        - source_path: ./test_nested_symlink
+        - destination: ./test_nested_symlink.zip
+    - script:
+        title: test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            unzip ./test_nested_symlink.zip -d ./test_nested_symlink_unzipped
+
+            [ "$(readlink ./test_nested_symlink/symlink_file.txt)" = "$(readlink ./test_nested_symlink_unzipped/test_nested_symlink/symlink_file.txt)" ]
+
+  test_complex_folder_name:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create folder that has an extension
+        inputs:
+        - content: |-
+            mkdir complex_folder &&
+            mkdir "folder_structure.apk" &&
+            touch "folder_structure.apk/test_file.txt"
+    - path::./:
+        title: Zip complex folder name
+        inputs:
+        - source_path: ./folder_structure.apk
+        - destination: ./complex_folder
+    - script:
+        title: test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            unzip ./complex_folder/folder_structure.apk.zip -d ./unzipped_complex_folder
+            diff -r ./folder_structure.apk ./unzipped_complex_folder/folder_structure.apk
+
+  test_file_only:
+    before_run:
+    - _setup
+    steps:
+    - script:
+        title: Create text file
+        inputs:
+        - content: touch "file_only.txt"
+    - path::./:
+        title: Zip file only
+        inputs:
+        - source_path: ./file_only.txt
+        - destination: ./test_file_only
+    - script:
+        title: test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip ./test_file_only.zip -d ./test_file_only_unzipped
+            diff ./file_only.txt ./test_file_only_unzipped/file_only.txt
+
+  _setup:
+    steps:
+    - script:
+        title: Clean _tmp dir
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            rm -rf "./_tmp"
+    - change-workdir:
+        title: Switch working dir to _tmp dir
+        run_if: "true"
+        inputs:
+        - path: ./_tmp
+        - is_create_path: true
