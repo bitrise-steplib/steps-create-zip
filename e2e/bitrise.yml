@@ -16,17 +16,13 @@ workflows:
         - source_path: ./folder_to_zip_test
         - destination: ./folder_to_zip_test.zip
     - script:
-        title: Unzip
+        title: test
         inputs:
         - content: |-
             #!/usr/bin/env bash
-            set -e
+            set -ex
             unzip folder_to_zip_test.zip -d ./folder_to_zip_test_unzipped
-
-            envman add --key ZIPPED_DIR_PATH --value "folder_to_zip_test"
-            envman add --key UNZIPPED_DIR_PATH --value "folder_to_zip_test_unzipped/folder_to_zip_test"
-    after_run:
-    - _check_file_struct
+            diff -r ./folder_to_zip_test ./folder_to_zip_test_unzipped/folder_to_zip_test
 
   test_folder_in_folder:
     before_run:
@@ -42,17 +38,13 @@ workflows:
         - source_path: ./test_folder_in_folder
         - destination: ./
     - script:
-        title: Unzip
+        title: test
         inputs:
         - content: |-
             #!/usr/bin/env bash
-            set -e
+            set -ex
             unzip test_folder_in_folder.zip -d ./test_folder_in_folder_unzipped
-
-            envman add --key ZIPPED_DIR_PATH --value "test_folder_in_folder"
-            envman add --key UNZIPPED_DIR_PATH --value "test_folder_in_folder_unzipped/test_folder_in_folder"
-    after_run:
-    - _check_file_struct
+            diff -r ./test_folder_in_folder ./test_folder_in_folder_unzipped/test_folder_in_folder
 
   test_file_in_folder:
     before_run:
@@ -70,17 +62,13 @@ workflows:
         - source_path: ./test_file_in_folder
         - destination: ./test_file_in_folder.zip
     - script:
-        title: Unzip
+        title: test
         inputs:
         - content: |-
             #!/usr/bin/env bash
-            set -e
+            set -ex
             unzip test_file_in_folder.zip -d ./test_file_in_folder_unzipped
-
-            envman add --key ZIPPED_DIR_PATH --value "test_file_in_folder"
-            envman add --key UNZIPPED_DIR_PATH --value "test_file_in_folder_unzipped/test_file_in_folder"
-    after_run:
-    - _check_file_struct
+            diff -r ./test_file_in_folder ./test_file_in_folder_unzipped/test_file_in_folder
 
   test_symlink:
     before_run:
@@ -101,17 +89,13 @@ workflows:
         - source_path: ./test_symlink
         - destination: ./test_symlink.zip
     - script:
-        title: Unzip
+        title: test
         inputs:
         - content: |-
             #!/usr/bin/env bash
-            set -e
+            set -ex
             unzip test_symlink.zip -d ./test_symlink_unzipped
-
-            envman add --key ZIPPED_DIR_PATH --value "test_symlink"
-            envman add --key UNZIPPED_DIR_PATH --value "test_symlink_unzipped/test_symlink"
-    after_run:
-    - _check_file_struct
+            diff -r ./test_symlink ./test_symlink_unzipped/test_symlink
 
   test_nested_symlink:
     before_run:
@@ -132,6 +116,14 @@ workflows:
         inputs:
         - source_path: ./test_nested_symlink
         - destination: ./test_nested_symlink.zip
+    - script:
+        title: test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -ex
+            unzip ./test_nested_symlink.zip -d ./test_nested_symlink_unzipped
+            diff -r ./test_nested_symlink ./test_nested_symlink_unzipped/test_nested_symlink
 
   test_complex_folder_name:
     before_run:
@@ -150,17 +142,13 @@ workflows:
         - source_path: ./folder_structure.apk
         - destination: ./complex_folder
     - script:
-        title: Unzip
+        title: test
         inputs:
         - content: |-
             #!/usr/bin/env bash
-            set -e
-            unzip complex_folder/folder_structure.apk.zip -d ./unzipped_complex_folder
-
-            envman add --key ZIPPED_DIR_PATH --value "folder_structure.apk"
-            envman add --key UNZIPPED_DIR_PATH --value "unzipped_complex_folder/folder_structure.apk"
-    after_run:
-    - _check_file_struct
+            set -ex
+            unzip ./complex_folder/folder_structure.apk.zip -d ./unzipped_complex_folder
+            diff -r ./folder_structure.apk ./unzipped_complex_folder/folder_structure.apk
 
   test_file_only:
     before_run:
@@ -175,6 +163,14 @@ workflows:
         inputs:
         - source_path: ./file_only.txt
         - destination: ./test_file_only
+    - script:
+        title: test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            set -e
+            unzip ./test_file_only.zip -d ./test_file_only_unzipped
+            diff ./file_only.txt ./test_file_only_unzipped/file_only.txt
 
   _setup:
     steps:
@@ -192,22 +188,3 @@ workflows:
         - path: "./_tmp"
         - is_create_path: true
 
-  _check_file_struct:
-    steps:
-    - script:
-        title: Check zipped file structure
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            set -e
-            echo "Compare $ZIPPED_DIR_PATH and $UNZIPPED_DIR_PATH file structure"
-
-            before_zip="$(ls $ZIPPED_DIR_PATH)"
-            after_zip="$(ls $UNZIPPED_DIR_PATH)"
-
-            if [ "${before_zip}" != "${after_zip}" ]; then
-              echo "The zipped file structure is different than the original!"
-              echo "Before zip - ${before_zip}"
-              echo "After zip - ${after_zip}"
-              exit 1
-            fi
