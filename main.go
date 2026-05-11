@@ -5,10 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/bitrise-io/go-steputils/stepconf"
+	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/ziputil"
-	"github.com/bitrise-io/go-steputils/stepconf"
 )
 
 type config struct {
@@ -39,6 +40,13 @@ func main() {
 		failf("Issue with compress: %s", err)
 	}
 
+	absDestination, err := filepath.Abs(destination)
+	if err != nil {
+		failf("Failed to resolve absolute path of %s: %s", destination, err)
+	}
+	if err := tools.ExportEnvironmentWithEnvman("BITRISE_ZIP_PATH", absDestination); err != nil {
+		failf("Failed to export output BITRISE_ZIP_PATH: %s", err)
+	}
 }
 
 func ensureZIP(sourcePath string, destination string) error {
@@ -124,7 +132,7 @@ func checkDestinationIsDir(destination string) (bool, error) {
 	return info.IsDir(), nil
 }
 
-func failf(format string, v ...interface{}) {
+func failf(format string, v ...any) {
 	log.Errorf(format, v...)
 	os.Exit(1)
 }

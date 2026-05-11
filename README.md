@@ -44,7 +44,10 @@ You can also run this step directly with [Bitrise CLI](https://github.com/bitris
 
 <details>
 <summary>Outputs</summary>
-There are no outputs defined in this step
+
+| Environment Variable | Description |
+| --- | --- |
+| `BITRISE_ZIP_PATH` | Absolute path of the ZIP file produced by the Step.  This is the destination path after any normalization the Step applies, such as appending `.zip` when omitted or joining the source's basename when the destination is an existing directory. |
 </details>
 
 ## 🙋 Contributing
