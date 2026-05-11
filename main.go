@@ -92,8 +92,10 @@ func fixDestination(destination string, sourcePath string) (string, error) {
 
 	if isDir {
 		destination = filepath.Join(destination, filepath.Base(sourcePath))
+		destination = fixDestinationExt(destination)
+	} else if filepath.Ext(destination) == "" {
+		destination += ".zip"
 	}
-	destination = fixDestinationExt(destination)
 
 	return destination, nil
 }

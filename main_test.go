@@ -27,6 +27,13 @@ func TestFixDestination(t *testing.T) {
 			wantSuffix: "archive.zip",
 		},
 		{
+			name: "respects an explicit non-zip extension on the destination",
+			setup: func(t *testing.T, base string) (string, string) {
+				return filepath.Join(base, "archive.tar"), filepath.Join(base, "src")
+			},
+			wantSuffix: "archive.tar",
+		},
+		{
 			name: "joins source basename when destination is an existing directory",
 			setup: func(t *testing.T, base string) (string, string) {
 				dst := filepath.Join(base, "out")
