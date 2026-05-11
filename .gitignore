@@ -2,3 +2,6 @@
 .DS_Store
 _tmp/
 .gows*
+bin/
+steps-create-zip
+README.md.backup
