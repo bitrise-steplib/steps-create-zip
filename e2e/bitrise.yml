@@ -21,7 +21,9 @@ workflows:
         - content: |-
             #!/usr/bin/env bash
             set -ex
-            unzip folder_to_zip_test.zip -d ./folder_to_zip_test_unzipped
+            [ "$BITRISE_ZIP_PATH" = "$(pwd)/folder_to_zip_test.zip" ]
+            [ -f "$BITRISE_ZIP_PATH" ]
+            unzip "$BITRISE_ZIP_PATH" -d ./folder_to_zip_test_unzipped
             diff -r ./folder_to_zip_test ./folder_to_zip_test_unzipped/folder_to_zip_test
 
   test_folder_in_folder:
@@ -43,7 +45,9 @@ workflows:
         - content: |-
             #!/usr/bin/env bash
             set -ex
-            unzip test_folder_in_folder.zip -d ./test_folder_in_folder_unzipped
+            [ "$BITRISE_ZIP_PATH" = "$(pwd)/test_folder_in_folder.zip" ]
+            [ -f "$BITRISE_ZIP_PATH" ]
+            unzip "$BITRISE_ZIP_PATH" -d ./test_folder_in_folder_unzipped
             diff -r ./test_folder_in_folder ./test_folder_in_folder_unzipped/test_folder_in_folder
 
   test_file_in_folder:
@@ -67,7 +71,9 @@ workflows:
         - content: |-
             #!/usr/bin/env bash
             set -ex
-            unzip test_file_in_folder.zip -d ./test_file_in_folder_unzipped
+            [ "$BITRISE_ZIP_PATH" = "$(pwd)/test_file_in_folder.zip" ]
+            [ -f "$BITRISE_ZIP_PATH" ]
+            unzip "$BITRISE_ZIP_PATH" -d ./test_file_in_folder_unzipped
             diff -r ./test_file_in_folder ./test_file_in_folder_unzipped/test_file_in_folder
 
   test_symlink:
@@ -94,7 +100,9 @@ workflows:
         - content: |-
             #!/usr/bin/env bash
             set -ex
-            unzip test_symlink.zip -d ./test_symlink_unzipped
+            [ "$BITRISE_ZIP_PATH" = "$(pwd)/test_symlink.zip" ]
+            [ -f "$BITRISE_ZIP_PATH" ]
+            unzip "$BITRISE_ZIP_PATH" -d ./test_symlink_unzipped
 
             # Symlink target preserved verbatim (test that the step stores the symlink as-is, without dereferencing)
             [ "$(readlink ./test_symlink/symlink_file_test.txt)" = "$(readlink ./test_symlink_unzipped/test_symlink/symlink_file_test.txt)" ]
@@ -126,7 +134,9 @@ workflows:
         - content: |-
             #!/usr/bin/env bash
             set -ex
-            unzip ./test_nested_symlink.zip -d ./test_nested_symlink_unzipped
+            [ "$BITRISE_ZIP_PATH" = "$(pwd)/test_nested_symlink.zip" ]
+            [ -f "$BITRISE_ZIP_PATH" ]
+            unzip "$BITRISE_ZIP_PATH" -d ./test_nested_symlink_unzipped
 
             [ "$(readlink ./test_nested_symlink/symlink_file.txt)" = "$(readlink ./test_nested_symlink_unzipped/test_nested_symlink/symlink_file.txt)" ]
 
@@ -152,7 +162,9 @@ workflows:
         - content: |-
             #!/usr/bin/env bash
             set -ex
-            unzip ./complex_folder/folder_structure.apk.zip -d ./unzipped_complex_folder
+            [ "$BITRISE_ZIP_PATH" = "$(pwd)/complex_folder/folder_structure.apk.zip" ]
+            [ -f "$BITRISE_ZIP_PATH" ]
+            unzip "$BITRISE_ZIP_PATH" -d ./unzipped_complex_folder
             diff -r ./folder_structure.apk ./unzipped_complex_folder/folder_structure.apk
 
   test_file_only:
@@ -173,8 +185,10 @@ workflows:
         inputs:
         - content: |-
             #!/usr/bin/env bash
-            set -e
-            unzip ./test_file_only.zip -d ./test_file_only_unzipped
+            set -ex
+            [ "$BITRISE_ZIP_PATH" = "$(pwd)/test_file_only.zip" ]
+            [ -f "$BITRISE_ZIP_PATH" ]
+            unzip "$BITRISE_ZIP_PATH" -d ./test_file_only_unzipped
             diff ./file_only.txt ./test_file_only_unzipped/file_only.txt
 
   _setup:

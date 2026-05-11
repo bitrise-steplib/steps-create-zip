@@ -59,3 +59,15 @@ inputs:
     is_expand: true
     is_required: true
     value_options: []
+
+outputs:
+- BITRISE_ZIP_PATH:
+  opts:
+    title: Path of the created ZIP archive
+    summary: Absolute path of the ZIP file produced by the Step.
+    description: |-
+      Absolute path of the ZIP file produced by the Step.
+
+      This is the destination path after any normalization the Step applies,
+      such as appending `.zip` when omitted or joining the source's basename
+      when the destination is an existing directory.
